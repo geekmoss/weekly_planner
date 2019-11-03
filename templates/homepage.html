@@ -11,6 +11,8 @@
 {% end %}
 {% block scripts %}
 <script type="application/javascript">
+    let counter = 0;
+
     // First, checks if it isn't implemented yet.
     if (!String.prototype.format) {
       String.prototype.format = function() {
@@ -48,10 +50,20 @@
 
     let save_data = () => {
         setCookie('todos', JSON.stringify(data), 365);
+        setCookie('meta', JSON.stringify({
+            "counter": counter
+        }), 365);
     };
 
     let load_data = () => {
-        let json = getCookie('todos');
+        let json = getCookie('meta');
+        if (json.length > 0) {
+            let meta = JSON.parse(json);
+
+            counter = meta.counter;
+        }
+
+        json = getCookie('todos');
         if (json.length > 0) {
             return JSON.parse(json);
         }
@@ -73,20 +85,19 @@
         '        </div>' +
         '    </div>';
 
-    let checkbox = '<div class="ui item checkbox">' +
+    let checkbox = '<div class="ui list"><div class="ui checkbox">' +
         '<input type="checkbox" id={0}>' +
         '<label for={0}>{1}</label>' +
-        '</div>';
+        '</div><span style="float: right;"><i class="close small link icon remove" data-id={0}></i></span></div>';
 
     let days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
     let elms = {
         DAYS: $('.days'),
         BODY: $('body'),
-        RESET: $('.ui.button.reset-todo'),
+        RESET: $('.ui.button.reset-todo')
     };
 
-    let counter = 0;
 
     let add_todo = (day, text) => {
         let id = counter;
@@ -148,6 +159,16 @@
 
     elms.RESET.on('click', () => {
         data = {};
+        counter = 0;
+        render_todos();
+        save_data();
+    });
+
+    elms.BODY.on('click', '.close.small.link.icon.remove', (e) => {
+        let t = $(e.target);
+        let id = parseInt(t.data('id').substr(5));
+        let day = parseInt(t.parents('.column').data('day'));
+        delete data[day][(id)];
         render_todos();
         save_data();
     });
