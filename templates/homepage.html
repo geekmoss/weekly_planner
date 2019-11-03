@@ -1,0 +1,168 @@
+{% extends '@layout.html' %}
+{% block content %}
+
+<div class="ui four columns grid days">
+</div>
+
+<div>
+    <button class="ui right floated button reset-todo">Reset todo</button>
+</div>
+
+{% end %}
+{% block scripts %}
+<script type="application/javascript">
+    // First, checks if it isn't implemented yet.
+    if (!String.prototype.format) {
+      String.prototype.format = function() {
+        var args = arguments;
+        return this.replace(/{(\d+)}/g, function(match, number) {
+          return typeof args[number] != 'undefined'
+            ? args[number]
+            : match
+          ;
+        });
+      };
+    }
+
+    function setCookie(cname, cvalue, exdays) {
+      var d = new Date();
+      d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+      var expires = "expires="+d.toUTCString();
+      document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+    }
+
+    function getCookie(cname) {
+      var name = cname + "=";
+      var ca = document.cookie.split(';');
+      for(var i = 0; i < ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == ' ') {
+          c = c.substring(1);
+        }
+        if (c.indexOf(name) == 0) {
+          return c.substring(name.length, c.length);
+        }
+      }
+      return "";
+    }
+
+    let save_data = () => {
+        setCookie('todos', JSON.stringify(data), 365);
+    };
+
+    let load_data = () => {
+        let json = getCookie('todos');
+        if (json.length > 0) {
+            return JSON.parse(json);
+        }
+        else {
+            return {};
+        }
+    };
+
+    let data = load_data();
+
+    let board_day = '<div class="column" data-day="{0}">' +
+        '        <div class="ui segment">' +
+        '            <h4>{1}</h4>' +
+        '            <div class="ui list day-{0}">' +
+        '               <div class="ui mini input">' +
+        '                   <input type="text" placeholder="Add todo" class="add-todo">' +
+        '               </div>' +
+        '            </div>' +
+        '        </div>' +
+        '    </div>';
+
+    let checkbox = '<div class="ui item checkbox">' +
+        '<input type="checkbox" id={0}>' +
+        '<label for={0}>{1}</label>' +
+        '</div>';
+
+    let days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+    let elms = {
+        DAYS: $('.days'),
+        BODY: $('body'),
+        RESET: $('.ui.button.reset-todo'),
+    };
+
+    let counter = 0;
+
+    let add_todo = (day, text) => {
+        let id = counter;
+        counter++;
+
+        if (data[day] !== undefined) {
+            data[day][id] = {content: text, done: false};
+        }
+        else {
+            data[day] = {};
+            data[day][id] = {content: text, done: false};
+        }
+
+        return {"id": id}
+    };
+
+    let render_todos = () => {
+        elms.DAYS.html('');
+
+        for (let day in days) {
+            elms.DAYS.append(board_day.format(day, days[day]));
+
+            if (data[day] !== undefined) {
+                for (let todo_id in data[day]) {
+                    let d = $('.ui.list.day-' + day.toString());
+                    let dch = d.children().first();
+                    $(checkbox.format('todo-' + todo_id.toString(), data[day][todo_id].content)).insertBefore(dch);
+
+                    if (data[day][todo_id].done) {
+                        $('#todo-'+todo_id.toString()).parent().checkbox('check');
+                    }
+                }
+            }
+        }
+
+        elms.BODY.on('keydown', '.add-todo', (e) => {
+            let t = $(e.target);
+            if (e.keyCode === 13 && t.val().trim() !== "") {
+                let day = t.parents('.column').data('day');
+                let id = add_todo(day, t.val()).id;
+
+                $(checkbox.format('todo-' + id.toString(), t.val())).insertBefore(t.parent());
+
+                t.val('');
+
+                save_data();
+                return false;
+            }
+        });
+
+        elms.BODY.on('change', 'input[type="checkbox"]', (e) => {
+            let t = $(e.target);
+            let id = parseInt(t.attr('id').substr(5));
+            data[t.parents('.column').data('day')][id].done = t.parent().checkbox('is checked');
+
+            save_data();
+        });
+    };
+
+    elms.RESET.on('click', () => {
+        data = {};
+        render_todos();
+        save_data();
+    });
+
+    (() => {
+        render_todos();
+    })();
+
+</script>
+{% end %}
+
+{% block styles %}
+<style>
+    .ui.mini.input {
+        margin-top: 12px;
+    }
+</style>
+{% end %}

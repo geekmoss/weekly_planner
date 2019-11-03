@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+    <meta charset="UTF-8">
+    <title>Weekly Planner</title>
+    <link rel="shortcut icon" href="static/icon.png" type="image/png">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.7.7/dist/semantic.min.css">
+    {% block styles %}{% end %}
+</head>
+<body>
+
+<div class="ui stackable menu">
+    <div class="item">
+        <img src="/static/icon.png" alt="">
+    </div>
+    <a class="item active" href="/">Planner</a>
+</div>
+
+<div class="ui container">
+    {% block content %}{% end %}
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.7.7/dist/semantic.min.js"></script>
+<script type="application/javascript">
+
+</script>
+{% block scripts %}{% end %}
+</body>
+</html>

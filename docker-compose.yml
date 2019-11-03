@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  tornado:
+    container_name: "weekly_planner"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+    ports:
+      - 9090:9090
+    network_mode: "host"
